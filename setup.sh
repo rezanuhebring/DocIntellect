@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Local Setup & Configuration Script (v3.3 - Ubuntu 24.04+ Fix)
+# DocIntellect Local Setup & Configuration Script (v4.0 - Final)
 # ==============================================================================
-# This script is updated to handle package name changes in modern Linux
-# distributions like Ubuntu 24.04, where 'python3-distutils' is obsolete
-# and has been replaced by 'python3-setuptools'.
+# This definitive script handles modern Linux packaging changes and ensures
+# pip's own tools are up-to-date before installing project dependencies,
+# providing the most reliable setup experience.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -24,60 +24,57 @@ echo ""
 # --- Step 1: Verify Location and Base Dependencies ---
 echo -e "${YELLOW}Step 1: Verifying environment...${NC}"
 
-# Check if required files exist
-if ! [ -f "docker-compose.yml" ] || ! [ -f "requirements.txt" ]; then
+if ! [ -f "docker-compose.yml" ]; then
     echo -e "${RED}Error: Critical files not found.${NC}"
-    echo "Please make sure you are running this script from the root of the cloned DocIntellect project directory."
+    echo "Please run this script from the project root directory."
     exit 1
 fi
-
-# Check for Docker
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}Error: Docker is not installed.${NC}"
-    echo "Please install Docker Desktop for Windows and ensure it's running with the WSL 2 backend."
+    echo "Please install Docker Desktop and ensure it's running."
     exit 1
 fi
-echo "Environment verified successfully."
+echo "Environment verified."
 echo ""
 
 # --- Step 2: Install System Dependencies ---
 echo -e "${YELLOW}Step 2: Installing required system packages...${NC}"
-echo "This step may require you to enter your password for 'sudo'."
-sudo -v # Prompt for password upfront
+echo "This step may require your password for 'sudo'."
+sudo -v
 sudo apt-get update -y
-# On Ubuntu 24.04+, python3-distutils is replaced by python3-setuptools.
-# python3-dev is added for build robustness.
 sudo apt-get install -y default-jre python3-pip python3-venv python3-setuptools python3-dev build-essential
 echo "System dependencies installed."
 echo ""
 
-# --- Step 3: Create Virtual Environment and Install Python Packages ---
+# --- Step 3: Create Virtual Environment and Install Dependencies ---
 VENV_DIR="venv"
-echo -e "${YELLOW}Step 3: Creating Python virtual environment in './$VENV_DIR'...${NC}"
+echo -e "${YELLOW}Step 3: Setting up Python virtual environment in './$VENV_DIR'...${NC}"
 
-if [ ! -d "$VENV_DIR" ]; then
-    python3 -m venv "$VENV_DIR"
-    echo "Virtual environment created."
-else
-    echo "Virtual environment already exists. Skipping creation."
+if [ -d "$VENV_DIR" ]; then
+    echo "Removing existing virtual environment to ensure a clean slate."
+    rm -rf "$VENV_DIR"
 fi
+
+python3 -m venv "$VENV_DIR"
+echo "Virtual environment created."
 
 # Activate the venv for the subsequent commands
 source "$VENV_DIR/bin/activate"
 
-echo "Installing Python dependencies from requirements.txt into the virtual environment..."
+# BEST PRACTICE: Upgrade pip's own tools first
+echo "Upgrading pip, setuptools, and wheel..."
+pip install --upgrade pip setuptools wheel
+
+# Now, install the project requirements
+echo "Installing Python dependencies from requirements.txt..."
 pip install -r requirements.txt
 echo "Python packages installed."
 echo ""
 
 # --- Step 4: Build Initial Model ---
 echo -e "${YELLOW}Step 4: Building the initial machine learning model...${NC}"
-if [ -f "create_dummy_model.py" ]; then
-    python create_dummy_model.py
-    echo "Model 'model.pkl' created."
-else
-    echo -e "${RED}Warning: 'create_dummy_model.py' not found. Ensure a valid 'model.pkl' exists.${NC}"
-fi
+python create_dummy_model.py
+echo "Model 'model.pkl' created."
 echo ""
 
 # Deactivate the virtual environment
