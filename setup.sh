@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Local Setup & Configuration Script (v4.0 - Final)
+# DocIntellect Local Setup & Configuration Script (v5.0 - Final)
 # ==============================================================================
-# This definitive script handles modern Linux packaging changes and ensures
-# pip's own tools are up-to-date before installing project dependencies,
-# providing the most reliable setup experience.
+# This definitive script solves Python 3.12 incompatibility by installing
+# ONLY the necessary package (scikit-learn) locally for model creation,
+# while letting Docker handle the full application environment.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -21,7 +21,7 @@ set -e
 echo -e "${GREEN}--- DocIntellect Local Setup ---${NC}"
 echo ""
 
-# --- Step 1: Verify Location and Base Dependencies ---
+# --- Step 1: Verify Environment ---
 echo -e "${YELLOW}Step 1: Verifying environment...${NC}"
 
 if ! [ -f "docker-compose.yml" ]; then
@@ -37,38 +37,33 @@ fi
 echo "Environment verified."
 echo ""
 
-# --- Step 2: Install System Dependencies ---
+# --- Step 2: Install System Dependencies for Local Setup ---
 echo -e "${YELLOW}Step 2: Installing required system packages...${NC}"
 echo "This step may require your password for 'sudo'."
 sudo -v
 sudo apt-get update -y
-sudo apt-get install -y default-jre python3-pip python3-venv python3-setuptools python3-dev build-essential
+sudo apt-get install -y python3-pip python3-venv python3-setuptools python3-dev build-essential
 echo "System dependencies installed."
 echo ""
 
-# --- Step 3: Create Virtual Environment and Install Dependencies ---
+# --- Step 3: Set up a Minimal Local Environment ---
 VENV_DIR="venv"
-echo -e "${YELLOW}Step 3: Setting up Python virtual environment in './$VENV_DIR'...${NC}"
+echo -e "${YELLOW}Step 3: Setting up a minimal Python environment for model creation...${NC}"
 
-if [ -d "$VENV_DIR" ]; then
-    echo "Removing existing virtual environment to ensure a clean slate."
-    rm -rf "$VENV_DIR"
-fi
-
+# Ensure a clean slate for the virtual environment
+rm -rf "$VENV_DIR"
 python3 -m venv "$VENV_DIR"
-echo "Virtual environment created."
-
-# Activate the venv for the subsequent commands
 source "$VENV_DIR/bin/activate"
 
 # BEST PRACTICE: Upgrade pip's own tools first
 echo "Upgrading pip, setuptools, and wheel..."
 pip install --upgrade pip setuptools wheel
 
-# Now, install the project requirements
-echo "Installing Python dependencies from requirements.txt..."
-pip install -r requirements.txt
-echo "Python packages installed."
+# Install ONLY what's needed for the setup script.
+# This avoids the tika-python incompatibility on the local machine.
+echo "Installing scikit-learn locally..."
+pip install scikit-learn==1.5.0
+echo "Local Python packages installed."
 echo ""
 
 # --- Step 4: Build Initial Model ---
@@ -77,7 +72,6 @@ python create_dummy_model.py
 echo "Model 'model.pkl' created."
 echo ""
 
-# Deactivate the virtual environment
 deactivate
 echo "Local setup steps are complete."
 
@@ -89,7 +83,7 @@ echo ""
 echo -e "1. ${YELLOW}Configure Drives:${NC} Edit 'docker-compose.yml' to add your document folders."
 echo "   Command: ${GREEN}nano docker-compose.yml${NC}"
 echo ""
-echo -e "2. ${YELLOW}Launch App:${NC} Run this command from the current directory:"
+echo -e "2. ${YELLOW}Launch App:${NC} Run this command. It will build the app with a compatible Python 3.11 environment:"
 echo "   ${GREEN}docker-compose up --build -d${NC}"
 echo ""
 echo -e "3. ${YELLOW}Access Dashboard:${NC} Open your browser to ${GREEN}http://localhost${NC}"
