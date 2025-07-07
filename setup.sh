@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Local Setup & Configuration Script (v3.2 - Python 3.12+ Fix)
+# DocIntellect Local Setup & Configuration Script (v3.3 - Ubuntu 24.04+ Fix)
 # ==============================================================================
-# This script handles the "externally-managed-environment" error and the
-# missing 'distutils' module in Python 3.12.
+# This script is updated to handle package name changes in modern Linux
+# distributions like Ubuntu 24.04, where 'python3-distutils' is obsolete
+# and has been replaced by 'python3-setuptools'.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -23,7 +24,7 @@ echo ""
 # --- Step 1: Verify Location and Base Dependencies ---
 echo -e "${YELLOW}Step 1: Verifying environment...${NC}"
 
-# Check if required files exist, ensuring the script is run from the project root
+# Check if required files exist
 if ! [ -f "docker-compose.yml" ] || ! [ -f "requirements.txt" ]; then
     echo -e "${RED}Error: Critical files not found.${NC}"
     echo "Please make sure you are running this script from the root of the cloned DocIntellect project directory."
@@ -42,12 +43,11 @@ echo ""
 # --- Step 2: Install System Dependencies ---
 echo -e "${YELLOW}Step 2: Installing required system packages...${NC}"
 echo "This step may require you to enter your password for 'sudo'."
-# Use 'sudo -v' to prompt for the password upfront if needed.
-sudo -v
-# Update package list and install dependencies non-interactively
+sudo -v # Prompt for password upfront
 sudo apt-get update -y
-# 'python3-distutils' is now added to fix build issues on Python 3.12+
-sudo apt-get install -y default-jre python3-pip python3-venv python3-distutils build-essential
+# On Ubuntu 24.04+, python3-distutils is replaced by python3-setuptools.
+# python3-dev is added for build robustness.
+sudo apt-get install -y default-jre python3-pip python3-venv python3-setuptools python3-dev build-essential
 echo "System dependencies installed."
 echo ""
 
@@ -73,7 +73,6 @@ echo ""
 # --- Step 4: Build Initial Model ---
 echo -e "${YELLOW}Step 4: Building the initial machine learning model...${NC}"
 if [ -f "create_dummy_model.py" ]; then
-    # The 'python' command now correctly refers to the interpreter inside the venv
     python create_dummy_model.py
     echo "Model 'model.pkl' created."
 else
@@ -81,28 +80,20 @@ else
 fi
 echo ""
 
-# Deactivate the virtual environment, as its purpose is served
+# Deactivate the virtual environment
 deactivate
-echo "Local setup steps are complete. The virtual environment is no longer active."
+echo "Local setup steps are complete."
 
 # --- Final Instructions ---
 echo -e "${GREEN}--- SETUP COMPLETE ---${NC}"
 echo ""
 echo -e "${YELLOW}!!! IMPORTANT: FINAL STEPS REQUIRED !!!${NC}"
-echo "Your local environment is ready. Please complete the following to run the app:"
 echo ""
-echo -e "1. ${YELLOW}Configure Your Drives for Scanning:${NC}"
-echo "   You must edit 'docker-compose.yml' to tell the app which folders to scan."
-echo "   Open the file with your favorite editor:"
-echo "   ${GREEN}nano docker-compose.yml${NC}"
-echo "   Find the 'volumes' section and add paths to your document drives/folders."
-echo "   Detailed examples are provided inside the file. Save and exit when done."
+echo -e "1. ${YELLOW}Configure Drives:${NC} Edit 'docker-compose.yml' to add your document folders."
+echo "   Command: ${GREEN}nano docker-compose.yml${NC}"
 echo ""
-echo -e "2. ${YELLOW}Launch the Application:${NC}"
-echo "   Once you have configured the drives, run this command from the current directory:"
+echo -e "2. ${YELLOW}Launch App:${NC} Run this command from the current directory:"
 echo "   ${GREEN}docker-compose up --build -d${NC}"
 echo ""
-echo -e "3. ${YELLOW}Access the Dashboard:${NC}"
-echo "   Wait about a minute for the services to start, then open your web browser and go to:"
-echo "   ${GREEN}http://localhost${NC}"
+echo -e "3. ${YELLOW}Access Dashboard:${NC} Open your browser to ${GREEN}http://localhost${NC}"
 echo ""
