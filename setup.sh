@@ -1,14 +1,10 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Local Setup & Configuration Script (v3.1 - PEP 668 Compliant)
+# DocIntellect Local Setup & Configuration Script (v3.2 - Python 3.12+ Fix)
 # ==============================================================================
-# This script should be run AFTER cloning the repository. It will:
-# 1. Install required system packages (Java, Python tools, venv).
-# 2. Create a local Python virtual environment to avoid OS conflicts.
-# 3. Install Python packages into the virtual environment.
-# 4. Build the initial ML model using the virtual environment.
-# 5. Provide clear instructions to launch the application.
+# This script handles the "externally-managed-environment" error and the
+# missing 'distutils' module in Python 3.12.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -50,8 +46,8 @@ echo "This step may require you to enter your password for 'sudo'."
 sudo -v
 # Update package list and install dependencies non-interactively
 sudo apt-get update -y
-# 'python3-venv' is critical for creating virtual environments
-sudo apt-get install -y default-jre python3-pip python3-venv build-essential
+# 'python3-distutils' is now added to fix build issues on Python 3.12+
+sudo apt-get install -y default-jre python3-pip python3-venv python3-distutils build-essential
 echo "System dependencies installed."
 echo ""
 
@@ -105,11 +101,8 @@ echo ""
 echo -e "2. ${YELLOW}Launch the Application:${NC}"
 echo "   Once you have configured the drives, run this command from the current directory:"
 echo "   ${GREEN}docker-compose up --build -d${NC}"
-echo "   (The '-d' flag runs it in the background. To see logs, run 'docker-compose logs -f')"
 echo ""
 echo -e "3. ${YELLOW}Access the Dashboard:${NC}"
 echo "   Wait about a minute for the services to start, then open your web browser and go to:"
 echo "   ${GREEN}http://localhost${NC}"
-echo ""
-echo -e "To stop the application later, run: ${GREEN}docker-compose down${NC}"
 echo ""
