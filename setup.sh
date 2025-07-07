@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Local Setup & Configuration Script (v2)
+# DocIntellect Local Setup & Configuration Script (v3.1 - PEP 668 Compliant)
 # ==============================================================================
 # This script should be run AFTER cloning the repository. It will:
-# 1. Install required system packages (like Java for Tika).
-# 2. Install Python packages from requirements.txt.
-# 3. Build the initial ML model.
-# 4. Provide clear instructions to launch the application.
+# 1. Install required system packages (Java, Python tools, venv).
+# 2. Create a local Python virtual environment to avoid OS conflicts.
+# 3. Install Python packages into the virtual environment.
+# 4. Build the initial ML model using the virtual environment.
+# 5. Provide clear instructions to launch the application.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -26,7 +27,7 @@ echo ""
 # --- Step 1: Verify Location and Base Dependencies ---
 echo -e "${YELLOW}Step 1: Verifying environment...${NC}"
 
-# Check if required files exist
+# Check if required files exist, ensuring the script is run from the project root
 if ! [ -f "docker-compose.yml" ] || ! [ -f "requirements.txt" ]; then
     echo -e "${RED}Error: Critical files not found.${NC}"
     echo "Please make sure you are running this script from the root of the cloned DocIntellect project directory."
@@ -43,31 +44,50 @@ echo "Environment verified successfully."
 echo ""
 
 # --- Step 2: Install System Dependencies ---
-echo -e "${YELLOW}Step 2: Installing required system packages (Java, Python tools)...${NC}"
+echo -e "${YELLOW}Step 2: Installing required system packages...${NC}"
 echo "This step may require you to enter your password for 'sudo'."
-# We use 'sudo -v' to prompt for the password upfront if needed.
+# Use 'sudo -v' to prompt for the password upfront if needed.
 sudo -v
 # Update package list and install dependencies non-interactively
 sudo apt-get update -y
-sudo apt-get install -y default-jre python3-pip build-essential
+# 'python3-venv' is critical for creating virtual environments
+sudo apt-get install -y default-jre python3-pip python3-venv build-essential
 echo "System dependencies installed."
 echo ""
 
-# --- Step 3: Install Python Packages ---
-echo -e "${YELLOW}Step 3: Installing Python dependencies from requirements.txt...${NC}"
-pip3 install -r requirements.txt
+# --- Step 3: Create Virtual Environment and Install Python Packages ---
+VENV_DIR="venv"
+echo -e "${YELLOW}Step 3: Creating Python virtual environment in './$VENV_DIR'...${NC}"
+
+if [ ! -d "$VENV_DIR" ]; then
+    python3 -m venv "$VENV_DIR"
+    echo "Virtual environment created."
+else
+    echo "Virtual environment already exists. Skipping creation."
+fi
+
+# Activate the venv for the subsequent commands
+source "$VENV_DIR/bin/activate"
+
+echo "Installing Python dependencies from requirements.txt into the virtual environment..."
+pip install -r requirements.txt
 echo "Python packages installed."
 echo ""
 
 # --- Step 4: Build Initial Model ---
 echo -e "${YELLOW}Step 4: Building the initial machine learning model...${NC}"
 if [ -f "create_dummy_model.py" ]; then
-    python3 create_dummy_model.py
+    # The 'python' command now correctly refers to the interpreter inside the venv
+    python create_dummy_model.py
     echo "Model 'model.pkl' created."
 else
     echo -e "${RED}Warning: 'create_dummy_model.py' not found. Ensure a valid 'model.pkl' exists.${NC}"
 fi
 echo ""
+
+# Deactivate the virtual environment, as its purpose is served
+deactivate
+echo "Local setup steps are complete. The virtual environment is no longer active."
 
 # --- Final Instructions ---
 echo -e "${GREEN}--- SETUP COMPLETE ---${NC}"
