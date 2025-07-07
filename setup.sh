@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Local Setup & Configuration Script
+# DocIntellect Local Setup & Configuration Script (v2)
 # ==============================================================================
-# This script should be run AFTER cloning the repository. It will check for
-# dependencies, install required packages, build the initial ML model, and
-# provide instructions to launch the application.
+# This script should be run AFTER cloning the repository. It will:
+# 1. Install required system packages (like Java for Tika).
+# 2. Install Python packages from requirements.txt.
+# 3. Build the initial ML model.
+# 4. Provide clear instructions to launch the application.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -21,10 +23,10 @@ set -e
 echo -e "${GREEN}--- DocIntellect Local Setup ---${NC}"
 echo ""
 
-# --- Step 1: Verify Location and Dependencies ---
+# --- Step 1: Verify Location and Base Dependencies ---
 echo -e "${YELLOW}Step 1: Verifying environment...${NC}"
 
-# Check if required files exist, ensuring the script is run from the project root
+# Check if required files exist
 if ! [ -f "docker-compose.yml" ] || ! [ -f "requirements.txt" ]; then
     echo -e "${RED}Error: Critical files not found.${NC}"
     echo "Please make sure you are running this script from the root of the cloned DocIntellect project directory."
@@ -37,24 +39,28 @@ if ! command -v docker &> /dev/null; then
     echo "Please install Docker Desktop for Windows and ensure it's running with the WSL 2 backend."
     exit 1
 fi
-
-# Check for Python/Pip
-if ! command -v pip3 &> /dev/null; then
-    echo -e "${RED}Error: python3-pip is not installed.${NC}"
-    echo "Please install it first (e.g., 'sudo apt-get update && sudo apt-get install python3-pip')."
-    exit 1
-fi
 echo "Environment verified successfully."
 echo ""
 
-# --- Step 2: Install Python Packages ---
-echo -e "${YELLOW}Step 2: Installing Python dependencies...${NC}"
+# --- Step 2: Install System Dependencies ---
+echo -e "${YELLOW}Step 2: Installing required system packages (Java, Python tools)...${NC}"
+echo "This step may require you to enter your password for 'sudo'."
+# We use 'sudo -v' to prompt for the password upfront if needed.
+sudo -v
+# Update package list and install dependencies non-interactively
+sudo apt-get update -y
+sudo apt-get install -y default-jre python3-pip build-essential
+echo "System dependencies installed."
+echo ""
+
+# --- Step 3: Install Python Packages ---
+echo -e "${YELLOW}Step 3: Installing Python dependencies from requirements.txt...${NC}"
 pip3 install -r requirements.txt
 echo "Python packages installed."
 echo ""
 
-# --- Step 3: Build Initial Model ---
-echo -e "${YELLOW}Step 3: Building the initial machine learning model...${NC}"
+# --- Step 4: Build Initial Model ---
+echo -e "${YELLOW}Step 4: Building the initial machine learning model...${NC}"
 if [ -f "create_dummy_model.py" ]; then
     python3 create_dummy_model.py
     echo "Model 'model.pkl' created."
