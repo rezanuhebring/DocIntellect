@@ -1,0 +1,50 @@
+# /home/user/document_classifier/docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Our Python Flask Web Application
+  web:
+    build: .
+    container_name: doc_classifier_app
+    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
+    volumes:
+      # Mounts the application code into the container
+      - .:/app
+      # --- ACTION REQUIRED: MOUNT YOUR DRIVES ---
+      # Mount the drives you want to be able to scan from.
+      # The format is: /path/on/your/wsl:/path/inside/container:ro
+      # We put them all inside a /scan-targets directory in the container.
+      #
+      # UNCOMMENT and/or ADD the drives you have on your system.
+      # If a path like /mnt/e does not exist on your host, Docker will give an error.
+      #
+      - /mnt/c:/scan-targets/c:ro
+      - /mnt/d:/scan-targets/d:ro
+      # - /mnt/e:/scan-targets/e:ro
+      # - /home/user/my_docs:/scan-targets/home_docs:ro
+
+    ports:
+      - "5001:5000"
+    depends_on:
+      - tika
+    environment:
+      TIKA_SERVER_ENDPOINT: 'http://tika:9998'
+
+  # Apache Tika Server for document parsing
+  tika:
+    image: apache/tika:latest-full
+    container_name: tika_server
+    ports:
+      - "9998:9998"
+
+  # Nginx Web Server (the public entry point)
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web

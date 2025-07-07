@@ -1,0 +1,17 @@
+# /home/user/document_classifier/.gitignore
+
+# Python
+__pycache__/
+*.pyc
+
+# Database file
+database.db
+database.db-journal
+
+# Environment files
+.env
+
+# IDE and OS files
+.vscode/
+.idea/
+*.DS_Store
