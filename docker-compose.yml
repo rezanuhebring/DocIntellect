@@ -1,35 +1,38 @@
-# docker-compose.yml
+# docker-compose.yml (Clean version for VirtualBox)
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: doc_intellect_app
-    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app # Reduced workers for a VM
     volumes:
       - .:/app
-      # Mount the drives you want to scan
-      - /mnt/d:/scan-targets/d_drive:ro
+      # --- IMPORTANT: USER ACTION REQUIRED ---
+      # Add the path to your document folders INSIDE the VM here.
+      # Example: - /home/reza/my_legal_docs:/scan-targets/legal_docs:ro
     ports:
       - "5001:5000"
-    # This now correctly points to the official Tika service
     environment:
       TIKA_SERVER_URL: 'http://tika:9998/tika'
     depends_on:
-      # This healthcheck ensures Tika is fully running before the web app starts
       tika:
         condition: service_healthy
 
-  # The official Apache Tika Server, ready for production use
   tika:
-    image: apache/tika:latest-full
+    build:
+      context: .
+      dockerfile: tika.Dockerfile
     container_name: tika_server
     ports:
       - "9998:9998"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9998/tika"]
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   nginx:
     image: nginx:latest

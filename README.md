@@ -2,74 +2,52 @@
 
 A smart, containerized document classification system designed for legal and professional environments. DocIntellect automatically scans, extracts text, and categorizes documents from various sources using a trainable machine learning model.
 
-![Dashboard Screenshot](path/to/your/screenshot.png) <!-- It's highly recommended to add a screenshot! -->
+## Recommended Setup: Virtual Machine
 
-## Features
+This application is designed to run in a dedicated Linux environment. The most reliable method is to use a VirtualBox VM.
 
-- **Multi-Format Content Extraction**: Leverages Apache Tika to parse `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, and `.wpd` files.
-- **Machine Learning Classification**: Uses a Scikit-learn pipeline to automatically categorize documents based on their content.
-- **Multi-Lingual Support**: Capable of processing and classifying documents in both English and Bahasa Indonesia.
-- **Interactive Dashboard**: A modern web UI built with Flask and Bootstrap to:
-    - Select and scan specific drives or directories.
-    - View real-time statistics and classification results.
-    - Visualize data with charts (via Chart.js).
-- **Easy Deployment**: Fully containerized with Docker and Docker Compose for a one-command setup on Linux, macOS, or Windows (via WSL).
-- **Data Export**: Download the entire document database, including extracted content and metadata, as a CSV file.
+### Tech Stack
 
-## Tech Stack
-
-- **Backend**: Python 3.9, Flask, Gunicorn
-- **ML/Data Processing**: Scikit-learn, Pandas, Langdetect
-- **Document Parsing**: Apache Tika
+- **Backend**: Python, Flask, Gunicorn
+- **Document Parsing**: Apache Tika Server
 - **Database**: SQLite
-- **Frontend**: HTML, Bootstrap 5, jQuery, Chart.js
-- **Web Server**: Nginx
 - **Containerization**: Docker, Docker Compose
+- **Web Server**: Nginx
 
-## Getting Started
+### VM Installation & Setup
 
-### Prerequisites
+1.  **Create a VM**: Set up a VirtualBox VM with **Ubuntu Server 22.04 LTS**.
+    -   Minimum **4GB RAM** and **2 CPUs**.
+    -   Ensure you install the **OpenSSH server** during setup.
 
-- Docker
-- Docker Compose
-- WSL 2 (for Windows users)
+2.  **Install Docker**: SSH into your new VM and follow the [official Docker installation guide for Ubuntu](https://docs.docker.com/engine/install/ubuntu/). This ensures a clean, native installation.
 
-### Installation & Setup
-
-1.  **Clone the repository:**
+3.  **Clone the Repository**:
     ```bash
-    git clone https://github.com/your-username/docintellect.git
-    cd docintellect
+    git clone https://github.com/rezanuhebring/DocIntellect.git
+    cd DocIntellect
     ```
 
-2.  **Create an initial ML model:**
-    This project comes with a script to create a dummy model to get you started. For real-world use, you should replace the sample data in `create_dummy_model.py` with your own categorized examples.
+4.  **Run the Setup Script**: This script will configure permissions, prepare necessary files, and launch the application.
     ```bash
-    python3 create_dummy_model.py
+    chmod +x setup.sh
+    ./setup.sh
     ```
+    *Note: The first time you run the script, it will add your user to the `docker` group and ask you to log out and log back in. This is a one-time setup step.*
 
-3.  **Configure Scan Directories:**
-    Open `docker-compose.yml` and edit the `volumes` section to mount the host directories you wish to scan.
-    ```yaml
-    # docker-compose.yml
-    services:
-      web:
-        volumes:
-          # ... other volumes
-          - /mnt/d/MyLegalDocs:/scan-targets/drive_d:ro
-          - /home/user/contracts:/scan-targets/contracts:ro
-    ```
+5.  **Configure Volumes**: The setup script will open `docker-compose.yml` in a text editor. Add the paths to your document directories that exist *inside the VM*.
 
-4.  **Build and run the containers:**
-    ```bash
-    docker-compose up --build
-    ```
+### Accessing the Application
 
-5.  **Access the Dashboard:**
-    Open your web browser and navigate to `http://localhost`.
+1.  **Configure Port Forwarding**: In your VirtualBox VM settings (under Network > Advanced > Port Forwarding), create a rule to forward traffic from the Host Port `80` to the Guest Port `80`.
 
-## Usage
+2.  **Access the Dashboard**: Open a web browser on your main (host) computer and navigate to:
+    > **http://localhost**
 
-1.  From the dashboard, select a target directory from the dropdown menu.
-2.  Click the "Scan Selected Directory" button.
-3.  The dashboard will update automatically as documents are processed and classified.
+### Managing the Application
+
+All commands are run from within the project directory inside your VM's SSH session.
+
+-   **View Logs**: `docker compose logs -f`
+-   **Stop Application**: `docker compose down`
+-   **Start Application**: `docker compose up -d`

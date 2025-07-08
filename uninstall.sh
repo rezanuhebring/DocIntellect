@@ -1,17 +1,15 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Uninstaller Script (v2.0 - Modern Docker Compose)
+# DocIntellect Uninstaller Script (for VirtualBox VM)
 # ==============================================================================
-# This script uses the modern 'docker compose' syntax to stop and remove all
-# components of the DocIntellect application.
-# ==============================================================================
+# This script stops and removes all components of the application.
 
 # --- Style and Color Definitions ---
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # --- Initial Safety Checks ---
 echo -e "${YELLOW}--- DocIntellect Uninstaller ---${NC}"
@@ -26,11 +24,11 @@ if ! [ -f "docker-compose.yml" ]; then
     echo -e "${RED}Error: 'docker-compose.yml' not found. Run this from the project root.${NC}"; exit 1
 fi
 
-# --- Step 1: Stop and Remove Docker Containers & Networks ---
-echo -e "${YELLOW}Step 1: Stopping and removing Docker containers and networks...${NC}"
-# Use modern 'docker compose' syntax
-sudo docker compose down
-echo "Containers and networks removed."
+# --- Step 1: Stop and Remove Docker Components ---
+echo -e "${YELLOW}Step 1: Stopping containers and removing images/networks...${NC}"
+# Use '--rmi all' to remove the custom-built images (web and tika)
+docker compose down --rmi all
+echo "Containers, networks, and custom images removed."
 echo ""
 
 # --- Step 2: Remove the Database File ---
@@ -48,4 +46,4 @@ echo ""
 
 # --- Final Message ---
 echo -e "${GREEN}--- UNINSTALLATION COMPLETE ---${NC}"
-echo "Docker components have been removed. The project directory has been kept."
+echo "The project directory itself has been kept."
