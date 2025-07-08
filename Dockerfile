@@ -1,7 +1,8 @@
 # Dockerfile
 
-# Use Python 3.10, which is the latest version fully compatible with tika-python.
-FROM python:3.10-slim
+# Use Python 3.9. This is the latest version fully supported by tika-python.
+# This is the definitive fix for the 'No matching distribution' error.
+FROM python:3.9-slim
 
 # Set the working directory
 WORKDIR /app
