@@ -5,6 +5,12 @@ services:
     build: .
     container_name: doc_intellect_app
     command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
+    # --- DNS FIX ---
+    # This forces the container to use a reliable public DNS server,
+    # fixing network issues during the build process.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     volumes:
       - .:/app
       # --- IMPORTANT: USER ACTION REQUIRED ---
