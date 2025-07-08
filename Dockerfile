@@ -1,13 +1,16 @@
 # Dockerfile
 
-# Use Python 3.11, which is fully compatible with all project dependencies.
-FROM python:3.11-slim
+# Use Python 3.10, which is the latest version fully compatible with tika-python.
+FROM python:3.10-slim
 
 # Set the working directory
 WORKDIR /app
 
 # Install Tika's dependency (Java) and build tools
 RUN apt-get update && apt-get install -y --no-install-recommends default-jre build-essential && apt-get clean
+
+# BEST PRACTICE: Upgrade pip inside the container first
+RUN pip install --upgrade pip
 
 # Copy the requirements file and install Python packages
 COPY requirements.txt .
