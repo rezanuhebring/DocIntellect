@@ -1,6 +1,7 @@
+# requirements.txt
 Flask==3.0.3
 gunicorn==22.0.0
 pandas==2.2.2
 scikit-learn==1.5.0
-tika-python==2.6.0
 langdetect==1.0.9
+requests==2.32.3  # New library to communicate with Tika server

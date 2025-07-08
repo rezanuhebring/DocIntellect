@@ -5,31 +5,32 @@ services:
     build: .
     container_name: doc_intellect_app
     command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
-    # --- DNS FIX ---
-    # This forces the container to use a reliable public DNS server,
-    # fixing network issues during the build process.
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     volumes:
       - .:/app
-      # --- IMPORTANT: USER ACTION REQUIRED ---
-      # Mount your drives here to make them scannable.
-      # Example for Windows D: drive:
+      # Mount the drives you want to scan
       - /mnt/d:/scan-targets/d_drive:ro
-      # Example for a folder in your WSL home:
-      - /home/user/my_documents:/scan-targets/my_docs:ro
     ports:
       - "5001:5000"
-    depends_on:
-      - tika
+    # This now correctly points to the official Tika service
     environment:
-      TIKA_SERVER_ENDPOINT: 'http://tika:9998'
+      TIKA_SERVER_URL: 'http://tika:9998/tika'
+    depends_on:
+      # This healthcheck ensures Tika is fully running before the web app starts
+      tika:
+        condition: service_healthy
+
+  # The official Apache Tika Server, ready for production use
   tika:
     image: apache/tika:latest-full
     container_name: tika_server
     ports:
       - "9998:9998"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9998/tika"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   nginx:
     image: nginx:latest
     container_name: nginx_proxy
