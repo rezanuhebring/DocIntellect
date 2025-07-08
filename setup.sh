@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
-# DocIntellect Setup Script (v7.0 - Hardened Environment Check)
+# DocIntellect Setup Script (v8.0 - Surgical Strike)
 # ==============================================================================
-# This script includes a pre-flight check that REFUSES to run if it detects
-# a conflicting native Docker installation, providing precise cleanup commands.
+# This definitive script solves the conflicting Docker installation problem by
+# explicitly using the full path to the correct Docker Desktop executable,
+# bypassing any system-level PATH issues.
 # ==============================================================================
 
 # --- Style and Color Definitions ---
@@ -13,35 +14,27 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# --- Step 0: Pre-flight Environment Check ---
-echo -e "${YELLOW}--- Performing System Pre-flight Check ---${NC}"
-
-# Check for the correct Docker installation from Docker Desktop.
-# It should be located at /usr/local/bin/docker.
-CORRECT_DOCKER_PATH="/usr/local/bin/docker"
-if ! command -v docker >/dev/null || [[ "$(which docker)" != "$CORRECT_DOCKER_PATH" ]]; then
-    echo -e "${RED}FATAL ERROR: A conflicting Docker installation was found.${NC}"
-    echo "Your system is using a native Linux Docker instead of the one from Docker Desktop."
-    echo ""
-    echo -e "${YELLOW}To fix this permanently, please run these commands in your WSL terminal:${NC}"
-    echo "1. Purge all conflicting packages:"
-    echo -e "   ${GREEN}sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker.io docker-doc docker-compose podman-docker containerd runc${NC}"
-    echo ""
-    echo "2. Manually remove the incorrect Docker binary if it still exists:"
-    echo -e "   ${GREEN}if [ -f /usr/bin/docker ]; then sudo rm /usr/bin/docker; fi${NC}"
-    echo ""
-    echo "3. Restart Docker Desktop on Windows and re-open this WSL terminal."
-    echo ""
-    echo "After completing these steps, you can run this setup script again."
-    exit 1
-fi
-echo -e "${GREEN}System check passed. Docker Desktop integration is correct.${NC}"
-echo ""
-
+# Exit immediately if a command exits with a non-zero status.
+set -e
 
 # --- Main Setup Logic ---
 echo -e "${GREEN}--- DocIntellect Automated Setup & Launch ---${NC}"
 echo ""
+
+# --- Step 0: Pre-flight Check ---
+echo -e "${YELLOW}--- Performing System Pre-flight Check ---${NC}"
+DOCKER_DESKTOP_CMD="/usr/local/bin/docker"
+
+if ! [ -f "$DOCKER_DESKTOP_CMD" ]; then
+    echo -e "${RED}FATAL ERROR: Docker Desktop is not correctly integrated with WSL.${NC}"
+    echo "The required command at '$DOCKER_DESKTOP_CMD' was not found."
+    echo ""
+    echo -e "${YELLOW}Please ensure Docker Desktop is running and WSL integration is enabled for your Ubuntu distribution in Docker Desktop's Settings > Resources.${NC}"
+    exit 1
+fi
+echo -e "${GREEN}System check passed. Docker Desktop command found.${NC}"
+echo ""
+
 
 # --- Step 1: Local Environment Setup ---
 echo -e "${YELLOW}Step 1: Preparing local environment...${NC}"
@@ -70,18 +63,21 @@ echo ""
 
 # --- Step 3: Build and Launch Application ---
 echo -e "${YELLOW}Step 3: Building and launching the application with Docker...${NC}"
+echo "This will use the correct Docker from Docker Desktop at '$DOCKER_DESKTOP_CMD'"
 echo "This may take several minutes the first time."
 
-# Use modern 'docker compose' syntax
-if sudo docker compose up --build -d; then
+# Use the full path to the correct Docker command to bypass any conflicts.
+if sudo "$DOCKER_DESKTOP_CMD" compose up --build -d; then
     # --- Success Message ---
     echo ""
     echo -e "${GREEN}--- DEPLOYMENT COMPLETE ---${NC}"
     echo ""
-    echo "The application is running. Wait a minute for it to initialize."
+    echo "The application is running. Wait about a minute for it to initialize."
     echo -e "Dashboard: ${YELLOW}http://localhost${NC}"
-    echo -e "View Logs: ${GREEN}sudo docker compose logs -f${NC}"
-    echo -e "Stop App:  ${GREEN}sudo docker compose down${NC}"
+    echo ""
+    echo -e "${YELLOW}IMPORTANT:${NC} To manage your app from the command line, always use the full path:"
+    echo -e "View Logs: ${GREEN}sudo /usr/local/bin/docker compose logs -f${NC}"
+    echo -e "Stop App:  ${GREEN}sudo /usr/local/bin/docker compose down${NC}"
     echo ""
 else
     # --- Failure Message ---

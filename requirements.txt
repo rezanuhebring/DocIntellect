@@ -1,13 +1,6 @@
-# requirements.txt
-
-# Web Framework and Server
 Flask==3.0.3
 gunicorn==22.0.0
-
-# Data and Machine Learning
 pandas==2.2.2
 scikit-learn==1.5.0
-
-# Document Processing and Language Detection
 tika-python==2.6.0
 langdetect==1.0.9
