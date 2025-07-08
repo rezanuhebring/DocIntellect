@@ -1,17 +1,10 @@
-# Python
-__pycache__/
-*.pyc
+# .dockerignore
+
+# Ignore the Python virtual environment
 venv/
 
-# Database file
-database.db
-database.db-journal
+# Ignore Git directory
+.git/
 
-# Environment files
-.env
-.env.*
-
-# IDE and OS files
-.vscode/
-.idea/
-*.DS_Store
+# Ignore Python cache
+__pycache__/
